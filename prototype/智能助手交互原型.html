@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>美妆智能助理 · 交互原型 V1.0.0</title>
+<style>
+  :root{
+    --brand:#e85d9c;        /* 主色：美妆粉 */
+    --brand-2:#a85be8;      /* 辅助紫 */
+    --brand-grad:linear-gradient(135deg,#e85d9c 0%,#a85be8 100%);
+    --bg:#f4f5f9;
+    --card:#ffffff;
+    --text:#1f2330;
+    --text-2:#6b7280;
+    --text-3:#9aa1ad;
+    --line:#ececf2;
+    --ok:#1bbf83;
+    --warn:#f5a623;
+    --danger:#ef4d5a;
+    --radius:16px;
+    --shadow:0 8px 30px rgba(40,30,60,.10);
+    --shadow-sm:0 2px 10px rgba(40,30,60,.06);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1200px 600px at 20% -10%,#f6e6f2 0%,transparent 60%),
+               radial-gradient(1000px 500px at 100% 0%,#e9e2fb 0%,transparent 55%),
+               #eef0f6;
+    color:var(--text);
+    display:flex;align-items:flex-start;justify-content:center;gap:28px;
+    padding:28px 18px 60px;min-height:100%;
+  }
+  .stage{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+
+  /* ===== 手机外壳 ===== */
+  .phone{
+    width:390px;height:820px;background:#000;border-radius:46px;padding:12px;
+    box-shadow:0 30px 80px rgba(50,30,70,.28);position:relative;flex:0 0 auto;
+  }
+  .screen{
+    position:relative;width:100%;height:100%;background:var(--bg);
+    border-radius:36px;overflow:hidden;display:flex;flex-direction:column;
+  }
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#000;border-radius:0 0 16px 16px;z-index:60}
+  .statusbar{height:40px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 4px;font-size:12px;font-weight:600;color:var(--text);flex:0 0 auto;background:transparent;z-index:5}
+  .statusbar .right{display:flex;gap:5px;align-items:center}
+
+  /* 顶栏 */
+  .topbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:6}
+  .topbar .title{font-size:16px;font-weight:700}
+  .icon-btn{width:36px;height:36px;border-radius:10px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text)}
+  .icon-btn:active{background:#0000000d}
+
+  /* 内容区 */
+  .body{flex:1 1 auto;overflow-y:auto;position:relative;-webkit-overflow-scrolling:touch}
+  .body::-webkit-scrollbar{width:0}
+
+  /* 视图切换 */
+  .view{display:none;flex-direction:column;min-height:100%}
+  .view.active{display:flex}
+
+  /* ===== 通用控件 ===== */
+  .btn{border:none;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn-primary{background:var(--brand-grad);color:#fff;box-shadow:0 6px 16px rgba(190,70,150,.3)}
+  .btn-primary:active{transform:translateY(1px)}
+  .btn-primary:disabled{background:#d7d9e0;color:#fff;box-shadow:none;cursor:not-allowed}
+  .btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line)}
+  .btn-block{width:100%}
+  .pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--text-2);transition:.15s}
+  .pill.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .chip{border:1px solid #f0d6e8;background:#fff;border-radius:999px;padding:9px 14px;font-size:13px;cursor:pointer;color:var(--brand);transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .chip:active{background:#fdeef6}
+
+  /* ===== 首页 ===== */
+  .home{padding:8px 18px 24px;display:flex;flex-direction:column;gap:18px;min-height:100%;
+    background:linear-gradient(180deg,#fbeef6 0%,transparent 220px)}
+  .hero{padding:18px 4px 4px}
+  .hero h1{font-size:26px;margin:0 0 6px;line-height:1.25;background:var(--brand-grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+  .hero p{margin:0;color:var(--text-2);font-size:13px}
+  .login-state{font-size:12px;color:var(--text-3);margin-top:6px}
+  .searchbox{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow-sm);cursor:text}
+  .searchbox input{border:none;outline:none;flex:1;font-size:15px;background:transparent;color:var(--text)}
+  .searchbox .go{width:38px;height:38px;border-radius:12px;background:var(--brand-grad);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex:0 0 auto}
+  .section-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;margin:2px 0}
+  .section-title .tag{font-size:11px;font-weight:500;color:var(--text-3)}
+  .topic-grid{display:flex;flex-direction:column;gap:10px}
+  .topic-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;transition:.15s;box-shadow:var(--shadow-sm)}
+  .topic-card:active{transform:scale(.99);border-color:var(--brand)}
+  .topic-card .ico{width:34px;height:34px;border-radius:10px;background:#fbeaf3;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto}
+  .topic-card .q{font-size:13.5px;line-height:1.5}
+
+  /* ===== 对话工作区 ===== */
+  .chat-wrap{display:flex;flex-direction:column;min-height:100%}
+  .guide{padding:18px;display:flex;flex-direction:column;gap:16px;flex:1}
+  .welcome{background:var(--brand-grad);color:#fff;border-radius:18px;padding:20px;box-shadow:0 10px 24px rgba(170,60,140,.25)}
+  .welcome h2{margin:0 0 8px;font-size:19px}
+  .welcome p{margin:0;font-size:13px;opacity:.95;line-height:1.6}
+  .config-row{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+  .config-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .config-line .label{font-size:12px;color:var(--text-2);width:42px;flex:0 0 auto}
+
+  .messages{padding:14px 14px 8px;display:flex;flex-direction:column;gap:16px;flex:1}
+  .msg-user{align-self:flex-end;max-width:84%;background:var(--brand-grad);color:#fff;padding:11px 14px;border-radius:16px 16px 4px 16px;font-size:14px;line-height:1.55;box-shadow:0 4px 12px rgba(190,70,150,.22)}
+  .msg-ai{align-self:flex-start;max-width:92%;display:flex;flex-direction:column;gap:8px}
+  .think{background:#f3f0fb;border:1px solid #e7e0f7;border-radius:12px;overflow:hidden}
+  .think-head{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;font-size:12.5px;color:var(--brand-2);font-weight:600}
+  .think-head .spin{display:inline-block}
+  .think-body{padding:0 12px 12px;font-size:12.5px;color:#6a6080;line-height:1.6;white-space:pre-wrap}
+  .think.collapsed .think-body{display:none}
+  .think .chev{margin-left:auto;transition:.2s}
+  .think.collapsed .chev{transform:rotate(-90deg)}
+
+  .answer{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;font-size:14px;line-height:1.7;box-shadow:var(--shadow-sm)}
+  .answer.academic{font-family:Georgia,"Times New Roman","Songti SC",serif;background:#fcfcff}
+  .answer h4{margin:12px 0 6px;font-size:14.5px}
+  .answer p{margin:0 0 8px}
+  .answer .cursor-blink{display:inline-block;width:7px;height:15px;background:var(--brand);vertical-align:-2px;animation:blink 1s steps(2) infinite;border-radius:1px}
+  @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+  .refs{margin-top:10px;font-size:12px;color:var(--text-3);border-top:1px dashed var(--line);padding-top:8px}
+  .refs sup{color:var(--brand);font-weight:700;cursor:pointer}
+
+  .toolbar{display:flex;align-items:center;gap:6px;margin-top:2px}
+  .tool{width:34px;height:32px;border-radius:9px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text-2);transition:.15s}
+  .tool:active{transform:scale(.94)}
+  .tool.active{color:var(--brand);border-color:var(--brand);background:#fdeef6}
+  .pager{display:flex;align-items:center;gap:4px;margin-left:auto;font-size:12px;color:var(--text-2);background:#fff;border:1px solid var(--line);border-radius:9px;padding:3px 6px}
+  .pager button{border:none;background:transparent;cursor:pointer;font-size:13px;color:var(--text-2);padding:2px 4px}
+  .pager button:disabled{color:#cfd2da;cursor:default}
+  .followups{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .followups .ftitle{width:100%;font-size:12px;color:var(--text-3)}
+
+  .gen-fail{background:#fff5f3;border:1px solid #ffd9d2;border-radius:12px;padding:12px;font-size:13px;color:#b3473c;display:flex;flex-direction:column;gap:8px}
+  .gen-block{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13.5px;color:var(--text-2)}
+
+  /* 底部输入区 */
+  .composer{flex:0 0 auto;border-top:1px solid var(--line);background:rgba(255,255,255,.92);backdrop-filter:blur(8px);padding:8px 12px 12px}
+  .composer .ctrls{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+  .mini-select{font-size:12px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 8px;color:var(--text-2);cursor:pointer;outline:none}
+  .composer .inputline{display:flex;gap:8px;align-items:flex-end;background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px 8px 8px 12px}
+  .composer textarea{flex:1;border:none;outline:none;resize:none;font-size:14px;font-family:inherit;line-height:1.4;max-height:84px;background:transparent;color:var(--text)}
+  .composer .count{font-size:10px;color:var(--text-3);padding:0 4px}
+  .composer .count.warn{color:var(--danger)}
+  .send{width:40px;height:40px;border-radius:11px;border:none;background:var(--brand-grad);color:#fff;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .send:disabled{background:#d7d9e0;cursor:not-allowed}
+  .send.stop{background:#2b2f3a}
+
+  .back-latest{position:absolute;right:14px;bottom:14px;width:42px;height:42px;border-radius:50%;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--brand);z-index:8}
+  .back-latest.show{display:flex}
+
+  /* ===== 设置 ===== */
+  .settings{padding:14px}
+  .set-group{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+  .set-item{display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid var(--line);cursor:pointer}
+  .set-item:last-child{border-bottom:none}
+  .set-item .k{font-size:14px}
+  .set-item .v{margin-left:auto;color:var(--text-3);font-size:13px;display:flex;align-items:center;gap:4px}
+  .set-item.danger .k{color:var(--danger)}
+
+  /* ===== 抽屉（历史侧边栏） ===== */
+  .drawer-mask{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;visibility:hidden;transition:.25s;z-index:30}
+  .drawer-mask.show{opacity:1;visibility:visible}
+  .drawer{position:absolute;top:0;left:0;height:100%;width:300px;background:#fff;transform:translateX(-100%);transition:.28s cubic-bezier(.4,0,.2,1);z-index:31;display:flex;flex-direction:column;border-radius:0 18px 18px 0}
+  .drawer.show{transform:translateX(0)}
+  .drawer .dh{padding:46px 16px 12px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)}
+  .drawer .new-chat{display:flex;align-items:center;gap:8px;justify-content:center;background:var(--brand-grad);color:#fff;border:none;border-radius:12px;padding:12px;font-weight:600;cursor:pointer}
+  .hist-list{flex:1;overflow-y:auto;padding:8px}
+  .hist-item{display:flex;align-items:center;gap:8px;padding:11px 10px;border-radius:10px;cursor:pointer;position:relative}
+  .hist-item:hover,.hist-item.active{background:#fbeef6}
+  .hist-item .ht{font-size:13.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hist-item .more{opacity:.4;font-size:16px;padding:2px 4px}
+  .hist-empty{padding:30px 16px;text-align:center;color:var(--text-3);font-size:13px}
+  .drawer .df{padding:12px 16px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;cursor:pointer}
+  .drawer .df .av{width:34px;height:34px;border-radius:50%;background:var(--brand-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+
+  /* ===== 弹层/Modal ===== */
+  .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:40;padding:20px}
+  .overlay.show{display:flex}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:18px 18px 26px;transform:translateY(100%);transition:.3s;z-index:41}
+  .sheet.show{transform:translateY(0)}
+  .modal{background:#fff;border-radius:18px;padding:20px;width:100%;max-width:330px;box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 6px;font-size:17px}
+  .modal p.sub{margin:0 0 16px;color:var(--text-2);font-size:13px}
+  .modal .actions{display:flex;gap:10px;margin-top:18px}
+  .grabber{width:40px;height:4px;border-radius:2px;background:#e3e3ea;margin:0 auto 14px}
+
+  /* 登录 sheet */
+  .login-tabs{display:flex;gap:6px;margin-bottom:14px}
+  .field{margin-bottom:12px}
+  .field label{font-size:12px;color:var(--text-2);display:block;margin-bottom:6px}
+  .field .inp{display:flex;gap:8px}
+  .field input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;outline:none}
+  .field input:focus{border-color:var(--brand)}
+  .code-btn{white-space:nowrap;border:1px solid var(--brand);color:var(--brand);background:#fff;border-radius:10px;padding:0 12px;font-size:13px;cursor:pointer}
+  .code-btn:disabled{border-color:var(--line);color:var(--text-3);cursor:default}
+  .wx-btn{background:#07c160;color:#fff;border:none;border-radius:12px;padding:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;width:100%}
+  .divider{display:flex;align-items:center;gap:10px;color:var(--text-3);font-size:12px;margin:14px 0}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* 角色卡 */
+  .roles{display:flex;flex-direction:column;gap:10px;margin:8px 0 4px}
+  .role-card{border:1.5px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;transition:.15s}
+  .role-card.sel{border-color:var(--brand);background:#fdeef6}
+  .role-card .rico{width:38px;height:38px;border-radius:11px;background:var(--brand-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto}
+  .role-card .rt{font-size:14px;font-weight:700}
+  .role-card .rd{font-size:11.5px;color:var(--text-2);margin-top:3px;line-height:1.5}
+  .role-card .rk{margin-left:auto;align-self:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+  .role-card.sel .rk{background:var(--brand);border-color:var(--brand)}
+
+  /* 反馈弹窗 */
+  .fb-cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .fb-textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px;outline:none;resize:none;font-family:inherit;min-height:80px}
+  .fb-textarea:focus{border-color:var(--brand)}
+  .req{color:var(--danger)}
+
+  /* Toast */
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);background:rgba(20,18,26,.9);color:#fff;padding:12px 18px;border-radius:12px;font-size:13.5px;z-index:80;opacity:0;visibility:hidden;transition:.2s;max-width:80%;text-align:center}
+  .toast.show{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}
+
+  /* ===== 演示控制台 ===== */
+  .console{width:300px;flex:0 0 auto;background:#fff;border-radius:20px;padding:18px;box-shadow:var(--shadow);position:sticky;top:28px}
+  .console h3{margin:0 0 4px;font-size:16px}
+  .console .desc{font-size:12px;color:var(--text-2);margin:0 0 14px;line-height:1.6}
+  .console .grp{margin-bottom:14px}
+  .console .grp h4{margin:0 0 8px;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
+  .console .row{display:flex;gap:8px;flex-wrap:wrap}
+  .console .cbtn{flex:1;min-width:120px;border:1px solid var(--line);background:#fbfbfd;border-radius:10px;padding:9px;font-size:12.5px;cursor:pointer;transition:.15s;color:var(--text)}
+  .console .cbtn:hover{border-color:var(--brand);color:var(--brand)}
+  .console .state{font-size:12px;background:#f6f6fa;border-radius:10px;padding:10px;color:var(--text-2);line-height:1.7}
+  .console .state b{color:var(--text)}
+  .badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:999px;background:#fdeef6;color:var(--brand);margin-left:6px}
+
+  @media (max-width:760px){
+    body{flex-direction:column;align-items:center;padding-top:14px}
+    .console{position:static;width:390px}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <!-- ============ 手机 ============ -->
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="statusbar">
+        <span id="clock">9:41</span>
+        <span class="right">●●● &nbsp;Wi-Fi&nbsp; <b id="battery">100%</b></span>
+      </div>
+
+      <!-- 顶栏 -->
+      <div class="topbar" id="topbar">
+        <button class="icon-btn" id="btnMenu" title="历史会话">☰</button>
+        <div class="title" id="topTitle">美妆智能助理</div>
+        <button class="icon-btn" id="btnSettings" title="设置">⚙️</button>
+      </div>
+
+      <div class="body" id="body">
+        <!-- ===== 首页 ===== -->
+        <section class="view active" id="view-home">
+          <div class="home">
+            <div class="hero">
+              <h1>你好，今天想<br/>研究点什么？</h1>
+              <p>专业美妆配方分析与全球法规指导</p>
+              <div class="login-state" id="homeLoginState">未登录 · 点击输入框开始</div>
+            </div>
+            <div class="searchbox" id="homeSearch">
+              <input id="homeInput" placeholder="输入你的问题，例如：烟酰胺的功效…" />
+              <button class="go" id="homeGo">➤</button>
+            </div>
+            <div class="section-title">🔥 热门话题 <span class="tag" id="recoSource">（通用推荐）</span></div>
+            <div class="topic-grid" id="topicGrid"></div>
+          </div>
+        </section>
+
+        <!-- ===== 对话工作区 ===== -->
+        <section class="view" id="view-chat">
+          <div class="chat-wrap">
+            <!-- 引导页（空状态） -->
+            <div class="guide" id="guide">
+              <div class="welcome">
+                <h2>Hi！我是你的美妆智能助理</h2>
+                <p>基于精准 AI 算法与百万级成分数据库，为你提供专业的配方分析与法规指导。</p>
+              </div>
+              <div class="config-row">
+                <div class="config-line">
+                  <span class="label">模式</span>
+                  <button class="pill active" data-mode="fast">⚡ 快速模式</button>
+                  <button class="pill" data-mode="expert">🎓 专家模式</button>
+                </div>
+                <div class="config-line">
+                  <span class="label">语调</span>
+                  <button class="pill active" data-tone="friendly">💗 亲和语调</button>
+                  <button class="pill" data-tone="professional">📋 专业语调</button>
+                </div>
+              </div>
+              <div class="section-title" style="margin-top:4px">💡 推荐问题</div>
+              <div class="topic-grid" id="guideTopics"></div>
+            </div>
+
+            <!-- 对话消息流 -->
+            <div class="messages" id="messages" style="display:none"></div>
+          </div>
+          <button class="back-latest" id="backLatest" title="回到最新">⌄</button>
+
+          <!-- 底部输入区 -->
+          <div class="composer" id="composer" style="display:none">
+            <div class="ctrls">
+              <select class="mini-select" id="modeSelect">
+                <option value="fast">⚡ 快速模式</option>
+                <option value="expert">🎓 专家模式</option>
+              </select>
+              <select class="mini-select" id="toneSelect">
+                <option value="friendly">💗 亲和语调</option>
+                <option value="professional">📋 专业语调</option>
+              </select>
+            </div>
+            <div class="inputline">
+              <textarea id="chatInput" rows="1" placeholder="继续提问…"></textarea>
+              <span class="count" id="charCount">0/1000</span>
+              <button class="send" id="sendBtn" disabled>➤</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== 设置 ===== -->
+        <section class="view" id="view-settings">
+          <div class="settings">
+            <div class="set-group">
+              <div class="set-item" id="setRole">
+                <span class="k">核心角色</span>
+                <span class="v" id="setRoleVal">未选择 ›</span>
+              </div>
+              <div class="set-item">
+                <span class="k">消息通知</span>
+                <span class="v">已开启 ›</span>
+              </div>
+              <div class="set-item">
+                <span class="k">隐私与数据</span>
+                <span class="v">›</span>
+              </div>
+            </div>
+            <div class="set-group">
+              <div class="set-item">
+                <span class="k">关于</span>
+                <span class="v">V1.0.0 ›</span>
+              </div>
+              <div class="set-item danger" id="setLogout">
+                <span class="k">退出登录</span>
+                <span class="v">›</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ===== 历史抽屉 ===== -->
+      <div class="drawer-mask" id="drawerMask"></div>
+      <div class="drawer" id="drawer">
+        <div class="dh">
+          <button class="new-chat" id="newChat">＋ 新建对话</button>
+        </div>
+        <div class="hist-list" id="histList"></div>
+        <div class="df" id="drawerUser">
+          <div class="av" id="userAv">游</div>
+          <div>
+            <div style="font-size:13px;font-weight:600" id="userName">未登录</div>
+            <div style="font-size:11px;color:var(--text-3)" id="userRole">点击登录</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 各类弹层 ===== -->
+      <div class="overlay" id="overlayRoot"></div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+  <!-- ============ 演示控制台 ============ -->
+  <div class="console">
+    <h3>交互原型 · 演示控制台 <span class="badge">V1.0.0</span></h3>
+    <p class="desc">基于《智能助手 PRD》构建的高保真可交互原型，覆盖登录、首页、角色、对话、历史、设置与异常兜底全流程。可直接在左侧手机中操作，也可用下方按钮快速演示关键分支。</p>
+
+    <div class="grp">
+      <h4>登录态</h4>
+      <div class="row">
+        <button class="cbtn" data-demo="reset">🔄 重置为未登录新用户</button>
+        <button class="cbtn" data-demo="loginOld">登录为老用户(已选角色)</button>
+      </div>
+    </div>
+    <div class="grp">
+      <h4>异常兜底演示</h4>
+      <div class="row">
+        <button class="cbtn" data-demo="errSensitive">敏感词阻断</button>
+        <button class="cbtn" data-demo="errNetwork">网络超时</button>
+        <button class="cbtn" data-demo="errRate">频率限制(20/分)</button>
+        <button class="cbtn" data-demo="errReset">恢复正常</button>
+      </div>
+    </div>
+    <div class="grp">
+      <h4>当前状态</h4>
+      <div class="state" id="stateBox"></div>
+    </div>
+    <div class="grp">
+      <h4>覆盖的 PRD 验收点</h4>
+      <div class="state" style="font-size:11.5px">
+        AC-01~05 登录 · AC-06~08 首页推荐/兜底 · AC-09~10 角色 · AC-11~14 思考过程&模式语调 · AC-15 引用 · AC-16~19 反馈/复制 · AC-20~22 重生成翻页 · AC-23 追问 · AC-24~25 输入&中断 · AC-26 回到最新 · AC-27~31 历史 · AC-32 设置 · AC-34~36 异常
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   状态
+========================================================= */
+const ROLES = {
+  pm:       {name:'美妆产品经理', icon:'📊', desc:'负责产品规划、配方成分及生命周期管理'},
+  formulator:{name:'配方研发工程师', icon:'⚗️', desc:'专注于研发创新，管理复杂的工艺配方'},
+  legal:    {name:'法律合规人员', icon:'⚖️', desc:'审核安全标准，确保产品符合全球法规'},
+  expert:   {name:'细分领域专家', icon:'🔬', desc:'(毒理/生物/化学合成等) 提供深度专业支持'},
+};
+const RECO = {
+  general:[
+    {icon:'📖',q:'什么是「刷酸」？新手如何避免烂脸？'},
+    {icon:'📖',q:'防晒霜的 SPF 和 PA 分别代表什么？'},
+    {icon:'📖',q:'敏感肌应该如何挑选护肤品成分？'},
+  ],
+  pm:[
+    {icon:'📊',q:'当下美白精华最热门的有效成分有哪些？'},
+    {icon:'📊',q:'一款抗老面霜的成分卖点该如何提炼？'},
+    {icon:'📊',q:'新品上市前需要完成哪些合规节点？'},
+  ],
+  formulator:[
+    {icon:'⚗️',q:'烟酰胺与维C同配方的稳定性风险如何规避？'},
+    {icon:'⚗️',q:'高浓度玻尿酸精华如何解决黏腻肤感？'},
+    {icon:'⚗️',q:'乳化体系破乳的常见原因及对策？'},
+  ],
+  legal:[
+    {icon:'⚖️',q:'某成分在欧盟化妆品法规下的限值是多少？'},
+    {icon:'⚖️',q:'中国《化妆品安全技术规范》对防腐剂的要求？'},
+    {icon:'⚖️',q:'功效宣称「美白」需要哪些备案资料？'},
+  ],
+  expert:[
+    {icon:'🔬',q:'该成分的急性经口毒理学数据来源有哪些？'},
+    {icon:'🔬',q:'某防腐剂的致敏机理是什么？'},
+    {icon:'🔬',q:'化学合成路线中的杂质如何风险评估？'},
+  ],
+};
+const FOLLOWUPS = ['它有副作用吗？','日常浓度建议是多少？','和哪些成分不能一起用？','有没有平价替代成分？','孕妇可以用吗？'];
+
+const state = {
+  loggedIn:false,
+  isNewUser:true,        // 是否首次注册（控制角色弹窗仅一次）
+  rolePromptShown:false, // 角色弹窗是否已强制展示过
+  coreRole:null,         // 'pm'|'formulator'|'legal'|'expert'|null
+  mode:'fast',
+  tone:'friendly',
+  conversations:[],      // {id,title,messages:[]}
+  activeConv:null,
+  pendingQuestion:null,  // 登录/选角前暂存的问题
+  errorMode:'none',      // none|sensitive|network|rate
+  askTimestamps:[],      // 频率限制计时
+  generating:false,
+  stopFlag:false,
+};
+let convSeq=1, msgSeq=1;
+
+/* =========================================================
+   工具
+========================================================= */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function showView(id){
+  $$('.view').forEach(v=>v.classList.remove('active'));
+  $('#'+id).classList.add('active');
+  $('#body').scrollTop=0;
+}
+function setTopTitle(t){$('#topTitle').textContent=t;}
+
+/* =========================================================
+   首页 / 推荐
+========================================================= */
+function renderHome(){
+  $('#homeLoginState').textContent = state.loggedIn
+    ? (state.coreRole?('已登录 · '+ROLES[state.coreRole].name):'已登录 · 未选择角色')
+    : '未登录 · 点击输入框开始';
+  const key = (state.loggedIn && state.coreRole)?state.coreRole:'general';
+  $('#recoSource').textContent = (key==='general')?'（通用兜底推荐）':'（'+ROLES[key].name+'定向推荐）';
+  const list = (state.errorMode==='network')?RECO.general:RECO[key];
+  $('#topicGrid').innerHTML = list.map(t=>`
+    <div class="topic-card" data-q="${esc(t.q)}">
+      <div class="ico">${t.icon}</div><div class="q">${esc(t.q)}</div>
+    </div>`).join('');
+  $$('#topicGrid .topic-card').forEach(c=>c.onclick=()=>askFromHome(c.dataset.q));
+}
+function renderGuideTopics(){
+  const key=(state.coreRole)?state.coreRole:'general';
+  const list=RECO[key];
+  $('#guideTopics').innerHTML=list.map(t=>`
+    <div class="topic-card" data-q="${esc(t.q)}">
+      <div class="ico">${t.icon}</div><div class="q">${esc(t.q)}</div>
+    </div>`).join('');
+  $$('#guideTopics .topic-card').forEach(c=>c.onclick=()=>submitQuestion(c.dataset.q));
+}
+
+/* 首页发起提问：登录态/角色态校验 */
+function askFromHome(q){
+  if(!q || !q.trim()){toast('请输入问题');return;}
+  state.pendingQuestion=q.trim();
+  if(!state.loggedIn){ openLogin(); return; }
+  if(!state.coreRole){ openRoleModal(false); return; }
+  enterChatAndAsk();
+}
+$('#homeGo').onclick=()=>askFromHome($('#homeInput').value);
+$('#homeInput').addEventListener('keydown',e=>{if(e.key==='Enter'){askFromHome($('#homeInput').value);}});
+$('#homeInput').addEventListener('focus',e=>{
+  if(!state.loggedIn){e.target.blur();state.pendingQuestion=null;openLogin();}
+});
+$('#homeSearch').addEventListener('click',e=>{
+  if(!state.loggedIn && e.target.id!=='homeGo'){ openLogin(); }
+});
+
+/* 进入对话并提问暂存的问题 */
+function enterChatAndAsk(){
+  ensureConversation();
+  showChatView();
+  const q=state.pendingQuestion; state.pendingQuestion=null;
+  if(q) submitQuestion(q);
+}
+
+/* =========================================================
+   登录模块
+========================================================= */
+function openLogin(){
+  const html=`
+  <div class="sheet" id="loginSheet">
+    <div class="grabber"></div>
+    <h3 style="margin:0 0 14px">登录 / 注册</h3>
+    <div class="login-tabs">
+      <button class="pill active" id="tabPwd">账号密码</button>
+      <button class="pill" id="tabWx">微信授权</button>
+    </div>
+    <div id="pwdPane">
+      <div class="field"><label>手机号 / 账号</label><input id="acc" placeholder="请输入账号" value="138****8888"/></div>
+      <div class="field"><label>密码</label><input id="pwd" type="password" placeholder="请输入密码" value="••••••"/></div>
+      <button class="btn btn-primary btn-block" id="doPwdLogin">登录</button>
+    </div>
+    <div id="wxPane" style="display:none">
+      <p style="font-size:13px;color:var(--text-2);text-align:center;margin:6px 0 16px">点击下方按钮唤起微信授权登录</p>
+      <button class="wx-btn" id="doWxLogin">💬 微信授权登录</button>
+      <div style="margin-top:14px;font-size:12px;color:var(--text-3)">演示授权结果：</div>
+      <div class="row" style="display:flex;gap:8px;margin-top:8px">
+        <button class="pill" data-wx="bound">已绑手机号</button>
+        <button class="pill active" data-wx="unbound">新用户(未绑)</button>
+        <button class="pill" data-wx="fail">授权失败/取消</button>
+      </div>
+    </div>
+  </div>`;
+  openOverlay(html,true);
+  let wxResult='unbound';
+  const sheet=$('#loginSheet');
+  $('#tabPwd').onclick=()=>{$('#tabPwd').classList.add('active');$('#tabWx').classList.remove('active');$('#pwdPane').style.display='block';$('#wxPane').style.display='none';};
+  $('#tabWx').onclick=()=>{$('#tabWx').classList.add('active');$('#tabPwd').classList.remove('active');$('#pwdPane').style.display='none';$('#wxPane').style.display='block';};
+  $('#doPwdLogin').onclick=()=>{ finishLogin(false); };
+  $$('#wxPane .pill[data-wx]').forEach(b=>b.onclick=()=>{$$('#wxPane .pill[data-wx]').forEach(x=>x.classList.remove('active'));b.classList.add('active');wxResult=b.dataset.wx;});
+  $('#doWxLogin').onclick=()=>{
+    if(wxResult==='fail'){ toast('授权失败，请重试'); return; }
+    if(wxResult==='bound'){ finishLogin(false); }
+    else { openPhoneBind(); }
+  };
+}
+function openPhoneBind(){
+  const html=`
+  <div class="sheet" id="bindSheet">
+    <div class="grabber"></div>
+    <h3 style="margin:0 0 4px">绑定手机号</h3>
+    <p class="sub" style="color:var(--text-2);font-size:13px;margin:0 0 16px">微信授权成功，完成绑定即可注册登录</p>
+    <div class="field"><label>手机号</label><input id="bphone" placeholder="请输入 11 位手机号" maxlength="11"/></div>
+    <div class="field"><label>验证码</label><div class="inp"><input id="bcode" placeholder="6 位验证码" maxlength="6"/><button class="code-btn" id="getCode">获取验证码</button></div></div>
+    <button class="btn btn-primary btn-block" id="doBind" disabled>完成并登录</button>
+  </div>`;
+  openOverlay(html,true);
+  const phone=$('#bphone'),code=$('#bcode'),btn=$('#doBind');
+  function val(){ btn.disabled=!(/^1\d{10}$/.test(phone.value)&&/^\d{4,6}$/.test(code.value)); }
+  phone.oninput=val;code.oninput=val;
+  $('#getCode').onclick=function(){
+    if(!/^1\d{10}$/.test(phone.value)){toast('请输入正确的手机号');return;}
+    let n=60;this.disabled=true;this.textContent=n+'s';
+    const t=setInterval(()=>{n--;this.textContent=n+'s';if(n<=0){clearInterval(t);this.disabled=false;this.textContent='获取验证码';}},1000);
+    toast('验证码已发送（演示：123456）');
+  };
+  $('#doBind').onclick=()=>{ finishLogin(true); };
+}
+function finishLogin(isNew){
+  state.loggedIn=true;
+  state.isNewUser = isNew;
+  closeOverlay();
+  toast('登录成功');
+  updateUserBox();
+  // 首次注册成功 → 强制弹出角色选择（仅一次）
+  if(isNew && !state.rolePromptShown){
+    openRoleModal(true);
+  } else {
+    afterAuthContinue();
+  }
+  renderHome();
+}
+function afterAuthContinue(){
+  // 接续登录前的提问动作
+  if(state.pendingQuestion){
+    if(!state.coreRole){ openRoleModal(false); return; }
+    enterChatAndAsk();
+  }
+}
+
+/* 退出登录 */
+$('#setLogout').onclick=()=>{
+  confirmModal('确认退出登录？','退出后将清空本地登录态并返回首页。','退出登录',()=>{
+    Object.assign(state,{loggedIn:false,isNewUser:true,rolePromptShown:false,coreRole:null,conversations:[],activeConv:null});
+    closeDrawer();updateUserBox();renderHome();renderHist();showView('view-home');setTopTitle('美妆智能助理');
+    toast('已退出登录');updateState();
+  });
+};
+
+/* =========================================================
+   角色选择
+========================================================= */
+function openRoleModal(forced){
+  if(forced) state.rolePromptShown=true;
+  let sel=state.coreRole;
+  const cards=Object.entries(ROLES).map(([k,r])=>`
+    <div class="role-card ${sel===k?'sel':''}" data-role="${k}">
+      <div class="rico">${r.icon}</div>
+      <div><div class="rt">${r.name}</div><div class="rd">${r.desc}</div></div>
+      <div class="rk">✓</div>
+    </div>`).join('');
+  const html=`
+  <div class="modal">
+    <h3>请选择你当前的核心角色</h3>
+    <p class="sub">选择对应的职业角色以获取定制化体验</p>
+    <div class="roles" id="roleCards">${cards}</div>
+    <div class="actions">
+      ${forced?'<button class="btn btn-ghost" id="roleSkip" style="flex:1">跳过</button>':''}
+      <button class="btn btn-primary" id="roleConfirm" style="flex:2" ${sel?'':'disabled'}>确认并进入</button>
+    </div>
+  </div>`;
+  openOverlay(html,false);
+  $$('#roleCards .role-card').forEach(c=>c.onclick=()=>{
+    sel=c.dataset.role;
+    $$('#roleCards .role-card').forEach(x=>x.classList.remove('sel'));
+    c.classList.add('sel');
+    $('#roleConfirm').disabled=false;
+  });
+  if(forced) $('#roleSkip').onclick=()=>{
+    state.coreRole=null;closeOverlay();
+    toast('你稍后可以在偏好设置中随时更改角色');
+    updateUserBox();renderHome();updateState();
+    afterAuthContinue();
+  };
+  $('#roleConfirm').onclick=()=>{
+    state.coreRole=sel;closeOverlay();
+    toast('已设置角色：'+ROLES[sel].name);
+    updateUserBox();renderHome();renderGuideTopics();updateState();
+    // 接续动作
+    if(state.pendingQuestion){ enterChatAndAsk(); }
+  };
+}
+$('#setRole').onclick=()=>openRoleSetting();
+function openRoleSetting(){
+  let sel=state.coreRole;
+  const cards=Object.entries(ROLES).map(([k,r])=>`
+    <div class="role-card ${sel===k?'sel':''}" data-role="${k}">
+      <div class="rico">${r.icon}</div>
+      <div><div class="rt">${r.name}</div><div class="rd">${r.desc}</div></div>
+      <div class="rk">✓</div>
+    </div>`).join('');
+  const html=`
+  <div class="sheet" id="roleSetSheet">
+    <div class="grabber"></div>
+    <h3 style="margin:0 0 4px">核心角色</h3>
+    <p class="sub" style="color:var(--text-2);font-size:13px;margin:0 0 12px">修改后即时生效，影响后续新建对话的推荐与默认话术</p>
+    <div class="roles" id="roleSetCards">${cards}</div>
+    <button class="btn btn-primary btn-block" id="roleSetSave" style="margin-top:10px" ${sel?'':'disabled'}>保存</button>
+  </div>`;
+  openOverlay(html,true);
+  $$('#roleSetCards .role-card').forEach(c=>c.onclick=()=>{
+    sel=c.dataset.role;$$('#roleSetCards .role-card').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');$('#roleSetSave').disabled=false;
+  });
+  $('#roleSetSave').onclick=()=>{
+    state.coreRole=sel;closeOverlay();toast('已保存');updateUserBox();renderHome();renderGuideTopics();updateSetRole();updateState();
+  };
+}
+function updateSetRole(){ $('#setRoleVal').textContent=(state.coreRole?ROLES[state.coreRole].name:'未选择')+' ›'; }
+
+/* =========================================================
+   对话工作区
+========================================================= */
+function ensureConversation(){
+  if(!state.activeConv){
+    const c={id:convSeq++,title:'新对话',messages:[]};
+    state.conversations.unshift(c);state.activeConv=c;renderHist();
+  }
+}
+function showChatView(){
+  showView('view-chat');
+  const conv=state.activeConv;
+  const hasMsg=conv && conv.messages.length>0;
+  $('#guide').style.display=hasMsg?'none':'flex';
+  $('#messages').style.display=hasMsg?'flex':'none';
+  $('#composer').style.display='block';
+  setTopTitle(conv?conv.title:'新对话');
+  if(!hasMsg) renderGuideTopics();
+  syncComposerCtrls();
+  renderMessages();
+}
+function newConversation(){
+  state.activeConv=null;closeDrawer();
+  ensureConversation();
+  showChatView();
+}
+$('#newChat').onclick=newConversation;
+
+function submitQuestion(text){
+  text=(text||'').trim();
+  if(!text){toast('请输入问题');return;}
+  if(state.generating){toast('正在生成中，请稍候');return;}
+  // 频率限制
+  const now=Date.now();
+  state.askTimestamps=state.askTimestamps.filter(t=>now-t<60000);
+  if(state.errorMode==='rate' || state.askTimestamps.length>=20){
+    toast('您问得太快了，请稍作休息');return;
+  }
+  state.askTimestamps.push(now);
+
+  ensureConversation();
+  const conv=state.activeConv;
+  $('#guide').style.display='none';$('#messages').style.display='flex';
+  // 自动命名（首问首句前10字符）
+  if(conv.messages.length===0){
+    conv.title=text.slice(0,10)+(text.length>10?'...':'');
+    setTopTitle(conv.title);renderHist();
+  }
+  conv.messages.push({id:msgSeq++,role:'user',content:text});
+  $('#chatInput').value='';updateCount();
+  renderMessages();scrollBottom();
+  generateAnswer(conv,text);
+}
+
+function generateAnswer(conv,question){
+  const aiMsg={
+    id:msgSeq++,role:'assistant',mode:state.mode,tone:state.tone,
+    versions:[], active:0, feedback:null
+  };
+  conv.messages.push(aiMsg);
+  produceVersion(aiMsg,question,()=>{
+    // 生成完毕追加猜你想问
+    aiMsg.followups=pick(FOLLOWUPS,3);
+    renderMessages();scrollBottom();
+  });
+}
+
+function produceVersion(aiMsg,question,done){
+  const mode=aiMsg.mode,tone=aiMsg.tone;
+  const showThink=(mode==='expert'); // 专家模式展示思考过程
+  const ver={
+    reasoning: showThink?buildReasoning(question):null,
+    answer:'', fullAnswer:buildAnswer(question,mode,tone),
+    refs: (mode==='expert')?['成分安全数据库','欧盟 CosIng','文献 PubMed']:[],
+    thinkCollapsed:false, streaming:true, failed:false
+  };
+  aiMsg.versions.unshift(ver); aiMsg.active=0;
+  renderMessages();
+
+  // 异常分支
+  if(state.errorMode==='sensitive'){
+    ver.streaming=false;ver.failed='sensitive';ver.fullAnswer='';renderMessages();scrollBottom();if(done)done();return;
+  }
+  if(state.errorMode==='network'){
+    ver.streaming=false;ver.failed='network';ver.fullAnswer='';renderMessages();scrollBottom();if(done)done();return;
+  }
+
+  state.generating=true;state.stopFlag=false;syncSendBtn();
+  let i=0;const full=ver.fullAnswer;
+  const timer=setInterval(()=>{
+    if(state.stopFlag){clearInterval(timer);ver.streaming=false;state.generating=false;syncSendBtn();renderMessages();if(done)done();return;}
+    i+=Math.max(2,Math.round(full.length/60));
+    ver.answer=full.slice(0,i);
+    if(i>=full.length){
+      ver.answer=full;ver.streaming=false;
+      if(showThink) ver.thinkCollapsed=true; // 思考完成自动收起
+      clearInterval(timer);state.generating=false;syncSendBtn();
+      renderMessages();scrollBottom();if(done)done();
+    } else {
+      renderMessages();maybeScroll();
+    }
+  },45);
+}
+
+function buildReasoning(q){
+  return `1. 解析用户意图：「${q.slice(0,20)}${q.length>20?'…':''}」属于专业咨询。\n2. 检索成分数据库与法规库，匹配相关条目。\n3. 交叉校验数据来源可信度，筛除低质来源。\n4. 依据当前「模式/语调」组织结构化输出并附引用。`;
+}
+function buildAnswer(q,mode,tone){
+  if(mode==='fast'&&tone==='friendly'){
+    return `姐妹这个问题问得超专业！✨\n\n关于「${q.slice(0,14)}」我帮你划重点👇\n\n💡 **核心结论**：是可以安心使用的，但要注意浓度和搭配～\n\n🌟 **使用建议**：\n· 建议从低浓度开始建立耐受\n· 早上记得叠加防晒，效果翻倍\n· 敏感肌先在耳后小范围测试\n\n⚠️ **避雷提醒**：别和强酸/高浓度VC硬叠，容易刺激哦！\n\n有需要我可以再帮你出一份搭配清单～`;
+  }
+  if(mode==='expert'&&tone==='professional'){
+    return `一、概述\n针对「${q.slice(0,18)}」，结合成分安全数据库与现行法规进行系统分析。\n\n二、作用机理\n该成分通过调节角质代谢与屏障修护双通路发挥功效，其量效关系在 2%–5% 区间趋于稳定。\n\n三、合规限值\n依据欧盟化妆品法规（EC No.1223/2009）及《化妆品安全技术规范》，其驻留类产品建议添加量不超过规定上限。\n\n四、风险与建议\n需关注与低 pH 体系或氧化性成分的相容性，建议进行稳定性与刺激性预试验。`;
+  }
+  // 其余组合：默认结构化但偏口语
+  return `关于「${q.slice(0,16)}」的分析：\n\n核心结论：在合规浓度范围内使用是安全有效的。\n\n要点：\n1. 注意与其他活性成分的搭配顺序；\n2. 建立耐受后再提升使用频率；\n3. 关注配方 pH 与稳定性。\n\n如需更深入的机理或法规细节，可切换至「专家模式 + 专业语调」。`;
+}
+function pick(arr,n){const a=[...arr];const r=[];while(r.length<n&&a.length)r.push(a.splice(Math.floor(Math.random()*a.length),1)[0]);return r;}
+
+/* 渲染消息流 */
+function renderMessages(){
+  const conv=state.activeConv;if(!conv)return;
+  const box=$('#messages');
+  box.innerHTML=conv.messages.map(m=>{
+    if(m.role==='user') return `<div class="msg-user">${esc(m.content)}</div>`;
+    return renderAi(m);
+  }).join('');
+  bindMsgEvents();
+}
+function renderAi(m){
+  const ver=m.versions[m.active];if(!ver)return '';
+  let inner='';
+  // 思考过程
+  if(ver.reasoning){
+    inner+=`<div class="think ${ver.thinkCollapsed?'collapsed':''}" data-mid="${m.id}">
+      <div class="think-head">${ver.streaming?'<span class="spin">🧠</span> 正在思考…':'🧠 思考过程'}<span class="chev">⌄</span></div>
+      <div class="think-body">${esc(ver.reasoning)}</div>
+    </div>`;
+  }
+  // 失败兜底
+  if(ver.failed==='sensitive'){
+    inner+=`<div class="gen-block">暂时无法回答，请更换问题再提问。</div>`;
+  }else if(ver.failed==='network'){
+    inner+=`<div class="gen-fail"><div>⚠️ 网络开小差了，请检查网络或点击重新生成</div>
+      <button class="btn btn-ghost" style="align-self:flex-start;padding:6px 12px" data-act="regen" data-mid="${m.id}">↻ 重新生成</button></div>`;
+  }else{
+    const academic=(m.mode==='expert'&&m.tone==='professional');
+    const refs=ver.refs&&ver.refs.length?`<div class="refs">引用 ${ver.refs.length} 篇资料 ${ver.refs.map((r,i)=>`<sup>[${i+1}]</sup>`).join('')}</div>`:'';
+    inner+=`<div class="answer ${academic?'academic':''}">${fmt(ver.answer)}${ver.streaming?'<span class="cursor-blink"></span>':''}${ver.streaming?'':refs}</div>`;
+  }
+  // 工具栏（仅生成完成且未失败时）
+  if(!ver.streaming && !ver.failed){
+    const n=m.versions.length;
+    inner+=`<div class="toolbar">
+      <div class="tool ${m.feedback==='like'?'active':''}" data-act="like" data-mid="${m.id}" title="点赞">👍</div>
+      <div class="tool ${m.feedback==='dislike'?'active':''}" data-act="dislike" data-mid="${m.id}" title="点踩">👎</div>
+      <div class="tool" data-act="copy" data-mid="${m.id}" title="复制">📋</div>
+      ${n<6?`<div class="tool" data-act="regen" data-mid="${m.id}" title="重新生成">↻</div>`:''}
+      ${n>1?`<div class="pager"><button data-act="prev" data-mid="${m.id}" ${m.active>=n-1?'disabled':''}>‹</button><span>${m.active+1}/${n}</span><button data-act="next" data-mid="${m.id}" ${m.active<=0?'disabled':''}>›</button></div>`:''}
+    </div>`;
+    // 猜你想问
+    if(m.followups && m===lastAi()){
+      inner+=`<div class="followups"><span class="ftitle">💬 猜你想问</span>${m.followups.map(f=>`<span class="chip" data-act="follow" data-q="${esc(f)}">${esc(f)}</span>`).join('')}</div>`;
+    }
+  }
+  return `<div class="msg-ai" data-mid="${m.id}">${inner}</div>`;
+}
+function fmt(t){
+  return esc(t)
+    .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+    .replace(/^一、(.*)$/gm,'<h4>一、$1</h4>')
+    .replace(/^二、(.*)$/gm,'<h4>二、$1</h4>')
+    .replace(/^三、(.*)$/gm,'<h4>三、$1</h4>')
+    .replace(/^四、(.*)$/gm,'<h4>四、$1</h4>')
+    .replace(/\n/g,'<br/>');
+}
+function lastAi(){const c=state.activeConv;if(!c)return null;for(let i=c.messages.length-1;i>=0;i--)if(c.messages[i].role==='assistant')return c.messages[i];return null;}
+function findMsg(id){return state.activeConv.messages.find(m=>m.id==id);}
+
+function bindMsgEvents(){
+  $$('#messages .think-head').forEach(h=>h.onclick=()=>{
+    const t=h.closest('.think');const m=findMsg(t.dataset.mid);
+    m.versions[m.active].thinkCollapsed=!m.versions[m.active].thinkCollapsed;renderMessages();
+  });
+  $$('#messages [data-act]').forEach(el=>{
+    el.onclick=()=>{
+      const act=el.dataset.act,mid=el.dataset.mid;
+      if(act==='like') doLike(mid);
+      else if(act==='dislike') doDislike(mid);
+      else if(act==='copy'){toast('复制成功');}
+      else if(act==='regen') doRegen(mid);
+      else if(act==='prev'){const m=findMsg(mid);if(m.active<m.versions.length-1){m.active++;renderMessages();}}
+      else if(act==='next'){const m=findMsg(mid);if(m.active>0){m.active--;renderMessages();}}
+      else if(act==='follow') submitQuestion(el.dataset.q);
+    };
+  });
+}
+function doLike(mid){const m=findMsg(mid);m.feedback=(m.feedback==='like')?null:'like';renderMessages();if(m.feedback==='like')toast('反馈成功');}
+function doDislike(mid){
+  const m=findMsg(mid);
+  let cat=null;
+  const cats=['有害/不安全','虚假信息','没有帮助','其他'];
+  const html=`
+  <div class="modal">
+    <h3>反馈问题</h3>
+    <p class="sub">请选择问题类别并补充说明，帮助我们改进</p>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:8px">类别 <span class="req">*</span></div>
+    <div class="fb-cats" id="fbCats">${cats.map(c=>`<span class="pill" data-c="${c}">${c}</span>`).join('')}</div>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:8px">补充说明 <span class="req">*</span>（1–300 字）</div>
+    <textarea class="fb-textarea" id="fbText" maxlength="300" placeholder="请描述具体问题…"></textarea>
+    <div style="text-align:right;font-size:11px;color:var(--text-3)" id="fbCount">0/300</div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="fbCancel" style="flex:1">取消</button>
+      <button class="btn btn-primary" id="fbSubmit" style="flex:1" disabled>提交</button>
+    </div>
+  </div>`;
+  openOverlay(html,false);
+  const text=$('#fbText'),submit=$('#fbSubmit');
+  function val(){submit.disabled=!(cat&&text.value.trim().length>=1);}
+  $$('#fbCats .pill').forEach(p=>p.onclick=()=>{cat=p.dataset.c;$$('#fbCats .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');val();});
+  text.oninput=()=>{$('#fbCount').textContent=text.value.length+'/300';val();};
+  $('#fbCancel').onclick=closeOverlay;
+  $('#fbSubmit').onclick=()=>{m.feedback='dislike';closeOverlay();renderMessages();toast('反馈成功');};
+}
+function doRegen(mid){
+  const m=findMsg(mid);
+  if(m.versions.length>=6){toast('已达重新生成上限');return;}
+  if(state.generating){toast('正在生成中…');return;}
+  const userMsg=prevUser(m);
+  produceVersion(m,userMsg?userMsg.content:'',()=>{renderMessages();scrollBottom();});
+}
+function prevUser(m){const c=state.activeConv;const idx=c.messages.indexOf(m);for(let i=idx-1;i>=0;i--)if(c.messages[i].role==='user')return c.messages[i];return null;}
+
+/* 底部输入区 */
+const chatInput=$('#chatInput');
+function updateCount(){
+  let v=chatInput.value;
+  if(v.length>1000){v=v.slice(0,1000);chatInput.value=v;toast('已达 1000 字上限');}
+  const c=$('#charCount');c.textContent=v.length+'/1000';
+  c.classList.toggle('warn',v.length>=1000);
+  syncSendBtn();
+  chatInput.style.height='auto';chatInput.style.height=Math.min(chatInput.scrollHeight,84)+'px';
+}
+function syncSendBtn(){
+  const btn=$('#sendBtn');
+  if(state.generating){btn.disabled=false;btn.classList.add('stop');btn.innerHTML='⏹';}
+  else{btn.classList.remove('stop');btn.innerHTML='➤';btn.disabled=chatInput.value.trim().length<1;}
+}
+chatInput.addEventListener('input',updateCount);
+chatInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();onSend();}});
+$('#sendBtn').onclick=onSend;
+function onSend(){
+  if(state.generating){state.stopFlag=true;toast('已停止生成');return;}
+  const v=chatInput.value.trim();if(v.length<1)return;
+  submitQuestion(v);
+}
+function syncComposerCtrls(){$('#modeSelect').value=state.mode;$('#toneSelect').value=state.tone;}
+$('#modeSelect').onchange=e=>{state.mode=e.target.value;syncGuidePills();updateState();};
+$('#toneSelect').onchange=e=>{state.tone=e.target.value;syncGuidePills();updateState();};
+$$('#guide .pill[data-mode]').forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;syncGuidePills();syncComposerCtrls();updateState();});
+$$('#guide .pill[data-tone]').forEach(b=>b.onclick=()=>{state.tone=b.dataset.tone;syncGuidePills();syncComposerCtrls();updateState();});
+function syncGuidePills(){
+  $$('#guide .pill[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===state.mode));
+  $$('#guide .pill[data-tone]').forEach(b=>b.classList.toggle('active',b.dataset.tone===state.tone));
+}
+
+/* 滚动/回到最新 */
+function scrollBottom(){const b=$('#body');setTimeout(()=>b.scrollTop=b.scrollHeight,30);}
+function maybeScroll(){const b=$('#body');if(b.scrollHeight-b.scrollTop-b.clientHeight<120)b.scrollTop=b.scrollHeight;}
+$('#body').addEventListener('scroll',()=>{
+  if(!$('#view-chat').classList.contains('active'))return;
+  const b=$('#body');const far=b.scrollHeight-b.scrollTop-b.clientHeight>200;
+  $('#backLatest').classList.toggle('show',far);
+});
+$('#backLatest').onclick=scrollBottom;
+
+/* =========================================================
+   历史侧边栏 / 抽屉
+========================================================= */
+$('#btnMenu').onclick=openDrawer;
+$('#drawerMask').onclick=closeDrawer;
+function openDrawer(){renderHist();$('#drawer').classList.add('show');$('#drawerMask').classList.add('show');}
+function closeDrawer(){$('#drawer').classList.remove('show');$('#drawerMask').classList.remove('show');}
+function renderHist(){
+  const list=$('#histList');
+  if(!state.conversations.length){list.innerHTML='<div class="hist-empty">暂无历史会话<br/>点击「新建对话」开始</div>';return;}
+  list.innerHTML=state.conversations.map(c=>`
+    <div class="hist-item ${state.activeConv&&state.activeConv.id===c.id?'active':''}" data-id="${c.id}">
+      <span>💬</span><span class="ht">${esc(c.title)}</span><span class="more" data-more="${c.id}">⋯</span>
+    </div>`).join('');
+  $$('#histList .hist-item').forEach(it=>{
+    it.onclick=e=>{
+      if(e.target.dataset.more){histMenu(e.target.dataset.more);return;}
+      const c=state.conversations.find(x=>x.id==it.dataset.id);
+      state.activeConv=c;closeDrawer();showChatView();
+    };
+  });
+}
+function histMenu(id){
+  const c=state.conversations.find(x=>x.id==id);
+  const html=`
+  <div class="sheet" id="histSheet">
+    <div class="grabber"></div>
+    <div style="font-size:13px;color:var(--text-3);padding:0 4px 10px">${esc(c.title)}</div>
+    <button class="btn btn-ghost btn-block" id="hRename" style="margin-bottom:10px">✏️ 修改名称</button>
+    <button class="btn btn-ghost btn-block" id="hDelete" style="color:var(--danger)">🗑 删除对话</button>
+  </div>`;
+  openOverlay(html,true);
+  $('#hRename').onclick=()=>{closeOverlay();setTimeout(()=>renameConv(c),200);};
+  $('#hDelete').onclick=()=>{closeOverlay();setTimeout(()=>{
+    confirmModal('确定要永久删除该对话吗？','删除后将无法恢复。','删除',()=>{
+      state.conversations=state.conversations.filter(x=>x.id!==c.id);
+      if(state.activeConv&&state.activeConv.id===c.id){state.activeConv=null;showView('view-home');renderHome();setTopTitle('美妆智能助理');}
+      renderHist();toast('已删除');
+    });
+  },200);};
+}
+function renameConv(c){
+  const html=`
+  <div class="modal">
+    <h3>修改名称</h3>
+    <div class="field" style="margin-top:10px"><input id="renameInp" maxlength="30" value="${esc(c.title)}"/></div>
+    <div style="text-align:right;font-size:11px;color:var(--text-3)" id="renCount">${c.title.length}/30</div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="renCancel" style="flex:1">取消</button>
+      <button class="btn btn-primary" id="renSave" style="flex:1">保存</button>
+    </div>
+  </div>`;
+  openOverlay(html,false);
+  const inp=$('#renameInp');inp.focus();
+  inp.oninput=()=>{$('#renCount').textContent=inp.value.length+'/30';$('#renSave').disabled=!inp.value.trim();};
+  $('#renCancel').onclick=closeOverlay;
+  $('#renSave').onclick=()=>{
+    if(!inp.value.trim()){toast('名称不能为空');return;}
+    c.title=inp.value.trim();closeOverlay();renderHist();
+    if(state.activeConv&&state.activeConv.id===c.id)setTopTitle(c.title);
+    toast('已保存');
+  };
+}
+$('#drawerUser').onclick=()=>{if(!state.loggedIn){closeDrawer();openLogin();}};
+
+/* =========================================================
+   设置 / 导航
+========================================================= */
+$('#btnSettings').onclick=()=>{
+  if($('#view-settings').classList.contains('active')){backFromSettings();return;}
+  if(!state.loggedIn){openLogin();return;}
+  updateSetRole();showView('view-settings');setTopTitle('设置');
+  $('#btnSettings').textContent='✕';
+};
+function backFromSettings(){
+  $('#btnSettings').textContent='⚙️';
+  if(state.activeConv&&state.activeConv.messages.length){showChatView();}
+  else{showView('view-home');setTopTitle('美妆智能助理');renderHome();}
+}
+
+/* =========================================================
+   通用弹层
+========================================================= */
+function openOverlay(html,isSheet){
+  const root=$('#overlayRoot');root.innerHTML=html;root.classList.add('show');
+  if(isSheet){const s=root.querySelector('.sheet');requestAnimationFrame(()=>s.classList.add('show'));
+    root.onclick=e=>{if(e.target===root)closeOverlay();};}
+  else{root.onclick=e=>{if(e.target===root)closeOverlay();};}
+}
+function closeOverlay(){const root=$('#overlayRoot');const s=root.querySelector('.sheet');
+  if(s){s.classList.remove('show');setTimeout(()=>{root.classList.remove('show');root.innerHTML='';},260);}
+  else{root.classList.remove('show');root.innerHTML='';}
+}
+function confirmModal(title,sub,okText,onOk){
+  const html=`
+  <div class="modal">
+    <h3>${title}</h3>
+    <p class="sub">${sub}</p>
+    <div class="actions">
+      <button class="btn btn-ghost" id="cmCancel" style="flex:1">取消</button>
+      <button class="btn btn-primary" id="cmOk" style="flex:1;background:var(--danger);box-shadow:none">${okText}</button>
+    </div>
+  </div>`;
+  openOverlay(html,false);
+  $('#cmCancel').onclick=closeOverlay;
+  $('#cmOk').onclick=()=>{closeOverlay();onOk&&onOk();};
+}
+
+/* =========================================================
+   用户盒子 / 状态面板
+========================================================= */
+function updateUserBox(){
+  if(state.loggedIn){
+    $('#userAv').textContent='美';$('#userName').textContent='美妆从业者';
+    $('#userRole').textContent=state.coreRole?ROLES[state.coreRole].name:'未选择角色';
+  }else{
+    $('#userAv').textContent='游';$('#userName').textContent='未登录';$('#userRole').textContent='点击登录';
+  }
+}
+function updateState(){
+  $('#stateBox').innerHTML=`
+    登录态：<b>${state.loggedIn?'已登录':'未登录'}</b><br/>
+    核心角色：<b>${state.coreRole?ROLES[state.coreRole].name:'未选择'}</b><br/>
+    当前模式：<b>${state.mode==='fast'?'快速':'专家'}</b> · 语调：<b>${state.tone==='friendly'?'亲和':'专业'}</b><br/>
+    思考过程：<b>${state.mode==='expert'?'展示':'不展示'}</b><br/>
+    异常模式：<b>${({none:'正常',sensitive:'敏感词',network:'网络超时',rate:'频率限制'})[state.errorMode]}</b><br/>
+    会话数：<b>${state.conversations.length}</b>`;
+}
+
+/* =========================================================
+   演示控制台
+========================================================= */
+$$('.console .cbtn').forEach(b=>b.onclick=()=>{
+  const d=b.dataset.demo;
+  if(d==='reset'){
+    Object.assign(state,{loggedIn:false,isNewUser:true,rolePromptShown:false,coreRole:null,conversations:[],activeConv:null,mode:'fast',tone:'friendly',errorMode:'none',pendingQuestion:null});
+    closeOverlay();closeDrawer();$('#btnSettings').textContent='⚙️';
+    showView('view-home');setTopTitle('美妆智能助理');renderHome();renderHist();updateUserBox();syncGuidePills();toast('已重置为未登录新用户');
+  }
+  else if(d==='loginOld'){
+    Object.assign(state,{loggedIn:true,isNewUser:false,rolePromptShown:true,coreRole:'formulator'});
+    closeOverlay();updateUserBox();renderHome();updateSetRole();toast('已登录为老用户（配方研发工程师）');
+  }
+  else if(d==='errSensitive'){state.errorMode='sensitive';toast('已开启：敏感词阻断');}
+  else if(d==='errNetwork'){state.errorMode='network';toast('已开启：网络超时');}
+  else if(d==='errRate'){state.errorMode='rate';toast('已开启：频率限制');}
+  else if(d==='errReset'){state.errorMode='none';toast('已恢复正常');}
+  renderHome();updateState();
+});
+
+/* 时钟 */
+function tick(){const d=new Date();$('#clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+setInterval(tick,1000);tick();
+
+/* 初始化 */
+renderHome();renderHist();updateUserBox();updateState();syncGuidePills();updateCount();
+</script>
+</body>
+</html>
